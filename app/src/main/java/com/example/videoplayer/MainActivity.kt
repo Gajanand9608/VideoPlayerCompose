@@ -1,6 +1,7 @@
 package com.example.videoplayer
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -26,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -51,7 +53,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             VideoPlayerTheme {
                 val viewModel = hiltViewModel<MainViewModel>()
-                val videoItems by viewModel.videoItems.collectAsState()
+                val videoItems by viewModel.videoItems2.observeAsState(initial = emptyList())
+
                 val selectVideoLauncher =
                     rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri ->
                         uri?.let(viewModel::addVideoUri)
@@ -62,13 +65,15 @@ class MainActivity : ComponentActivity() {
                 }
 
                 val lifeCycleOwner = LocalLifecycleOwner.current
-                
+
                 DisposableEffect(key1 = lifeCycleOwner) {
-                    val observer = LifecycleEventObserver { _, event -> lifeCycle = event }
+                    val observer = LifecycleEventObserver { _, event ->
+                        Log.d("Gajanand", "DisposableEffect: $lifeCycle ,  $event ")
+                        lifeCycle = event
+                    }
                     lifeCycleOwner.lifecycle.addObserver(observer)
                     onDispose {
                         lifeCycleOwner.lifecycle.removeObserver(observer)
-
                     }
                 }
                 Column(
@@ -82,16 +87,38 @@ class MainActivity : ComponentActivity() {
                                 it.player = viewModel.player
                             }
                         }, update = {
-                            when(lifeCycle){
+                            when (lifeCycle) {
                                 Lifecycle.Event.ON_RESUME -> {
                                     it.onResume()
                                 }
+
                                 Lifecycle.Event.ON_PAUSE -> {
                                     it.onPause()
                                     it.player?.pause()
                                 }
 
-                                else -> Unit
+                                Lifecycle.Event.ON_CREATE -> {
+                                }
+
+                                Lifecycle.Event.ON_START -> {
+                                }
+
+                                Lifecycle.Event.ON_STOP -> {
+                                    it.onPause()
+                                    it.player?.pause()
+
+
+                                }
+
+                                Lifecycle.Event.ON_DESTROY -> {
+                                }
+
+                                Lifecycle.Event.ON_ANY -> {
+
+                                }
+
+                                else -> {
+                                }
                             }
                         }, modifier = Modifier
                             .fillMaxWidth()
@@ -107,7 +134,7 @@ class MainActivity : ComponentActivity() {
                     Spacer(modifier = Modifier.height(8.dp))
 
                     LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                        items(videoItems) {
+                        items(videoItems){
                             Text(
                                 text = it.name, modifier = Modifier
                                     .fillMaxWidth()

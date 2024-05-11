@@ -3,6 +3,7 @@ package com.example.videoplayer
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -21,6 +22,8 @@ class MainViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val videoUris = savedStateHandle.getStateFlow("videoUris", emptyList<Uri>())
+    private val videoUris2 = savedStateHandle.getLiveData("videoUris2", emptyList<Uri>())
+
     val videoItems = videoUris.map { uris ->
         uris.map { uri ->
             VideoItem(
@@ -31,20 +34,36 @@ class MainViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val videoItems2 = videoUris2.map { uris ->
+        uris.map { uri ->
+            VideoItem(
+                contentUri = uri,
+                mediaItem = MediaItem.fromUri(uri),
+                name = metaDataReader.getMetaDataFromUri(uri)?.fileName ?: "No Name"
+            )
+        }
+    }
+
     init {
         player.prepare()
     }
 
     fun addVideoUri(uri: Uri) {
         savedStateHandle["videoUris"] = videoUris.value + uri
+        savedStateHandle["videoUris2"] = videoUris2.value?.plus(uri)
+
         player.addMediaItem(MediaItem.fromUri(uri))
     }
 
     fun playVideo(uri: Uri) {
+//        player.setMediaItem(
+//            videoItems.value.find {
+//                it.contentUri == uri
+//            }?.mediaItem ?: return
+//        )
+
         player.setMediaItem(
-            videoItems.value.find {
-                it.contentUri == uri
-            }?.mediaItem ?: return
+            videoItems2.value?.find { it.contentUri == uri }?.mediaItem ?: return
         )
     }
 
