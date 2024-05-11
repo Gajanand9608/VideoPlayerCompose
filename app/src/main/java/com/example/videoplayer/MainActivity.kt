@@ -53,7 +53,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             VideoPlayerTheme {
                 val viewModel = hiltViewModel<MainViewModel>()
-                val videoItems by viewModel.videoItems2.observeAsState(initial = emptyList())
+                val videoItems by viewModel.videoItems.collectAsState(emptyList())
 
                 val selectVideoLauncher =
                     rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri ->

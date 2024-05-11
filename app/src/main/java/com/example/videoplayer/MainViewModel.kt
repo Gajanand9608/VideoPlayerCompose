@@ -34,37 +34,39 @@ class MainViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val videoItems2 = videoUris2.map { uris ->
-        uris.map { uri ->
-            VideoItem(
-                contentUri = uri,
-                mediaItem = MediaItem.fromUri(uri),
-                name = metaDataReader.getMetaDataFromUri(uri)?.fileName ?: "No Name"
-            )
-        }
-    }
+//    val videoItems2 = videoUris2.map { uris ->
+//        uris.map { uri ->
+//            VideoItem(
+//                contentUri = uri,
+//                mediaItem = MediaItem.fromUri(uri),
+//                name = metaDataReader.getMetaDataFromUri(uri)?.fileName ?: "No Name"
+//            )
+//        }
+//    }
 
     init {
         player.prepare()
+//        player.playWhenReady = true
     }
 
     fun addVideoUri(uri: Uri) {
         savedStateHandle["videoUris"] = videoUris.value + uri
-        savedStateHandle["videoUris2"] = videoUris2.value?.plus(uri)
+//        savedStateHandle["videoUris2"] = videoUris2.value?.plus(uri)
 
-        player.addMediaItem(MediaItem.fromUri(uri))
+//        player.addMediaItem(MediaItem.fromUri(uri))
+        player.addMediaItem(MediaItem.fromUri("http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"))
     }
 
     fun playVideo(uri: Uri) {
-//        player.setMediaItem(
-//            videoItems.value.find {
-//                it.contentUri == uri
-//            }?.mediaItem ?: return
-//        )
-
         player.setMediaItem(
-            videoItems2.value?.find { it.contentUri == uri }?.mediaItem ?: return
+            videoItems.value.find {
+                it.contentUri == uri
+            }?.mediaItem ?: return
         )
+
+//        player.setMediaItem(
+//            videoItems2.value?.find { it.contentUri == uri }?.mediaItem ?: return
+//        )
     }
 
     override fun onCleared() {
